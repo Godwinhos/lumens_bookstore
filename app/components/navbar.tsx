@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <div className="flex gap-4 px-4 bg-[#ECEEEB] text-black items-center">
+    <div className="flex gap-4 px-4 bg-[#ECEEEB] text-black items-center ">
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2  ">
         <Image src="/photo1.png" alt="logo" width={80} height={80} />
       </div>
 
