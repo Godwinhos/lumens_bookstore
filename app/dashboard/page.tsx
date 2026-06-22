@@ -3,7 +3,24 @@ import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
 export default function Dashboard() {
+  const [recentCheckouts, setRecentCheckouts] = useState<any[]>([
+    { title: "Gurur Nyar I", user: "Alice Johnson", date: "Oct 24", due: "Nov 07", status: "Borrowed", image: "/cover_mystery.png" },
+    { title: "The Silent Echo", user: "Mark Spencer", date: "Oct 22", due: "Nov 05", status: "Overdue", image: "/cover_fiction.png" },
+    { title: "Beyaz Dias I", user: "Sarah Connor", date: "Oct 20", due: "Nov 03", status: "Returned", image: "/cover_history.png" },
+  ]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedCheckouts = JSON.parse(localStorage.getItem('checkedOutBooks') || '[]');
+      if (storedCheckouts.length > 0) {
+        setRecentCheckouts([...storedCheckouts.reverse(), ...recentCheckouts]);
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F9FAF8]">
       <Navbar />
@@ -14,9 +31,9 @@ export default function Dashboard() {
             <h1 className="text-4xl font-serif text-black mb-2">Dashboard</h1>
             <p className="text-gray-600">Welcome back! Here is an overview of your book statistics.</p>
           </div>
-          <button className="bg-black text-white px-6 py-2 text-sm font-semibold hover:bg-[#6FB3A7] transition-colors">
+          <Link href="/dashboard/new" className="bg-black text-white px-6 py-2 text-sm font-semibold hover:bg-[#6FB3A7] transition-colors rounded-none inline-block">
             + Add New Book
-          </button>
+          </Link>
         </div>
 
         {/* Stats Grid */}
@@ -62,11 +79,7 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="text-sm text-gray-700 divide-y divide-gray-100">
-                {[
-                  { title: "Gurur Nyar I", user: "Alice Johnson", date: "Oct 24", due: "Nov 07", status: "Borrowed", image: "/cover_mystery.png" },
-                  { title: "The Silent Echo", user: "Mark Spencer", date: "Oct 22", due: "Nov 05", status: "Overdue", image: "/cover_fiction.png" },
-                  { title: "Beyaz Dias I", user: "Sarah Connor", date: "Oct 20", due: "Nov 03", status: "Returned", image: "/cover_history.png" },
-                ].map((row, i) => (
+                {recentCheckouts.map((row: any, i: number) => (
                   <tr key={i} className="hover:bg-[#F9FAF8] transition-colors">
                     <td className="px-6 py-4 flex items-center gap-3">
                       <Image src={row.image} alt={row.title} width={30} height={40} className="object-cover bg-gray-100" />

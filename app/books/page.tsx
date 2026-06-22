@@ -2,6 +2,8 @@
 import Image from "next/image";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const allBooks = [
   {
@@ -63,6 +65,37 @@ const allBooks = [
 ];
 
 export default function BooksPage() {
+  const router = useRouter();
+  const [category, setCategory] = useState('All Categories');
+  const [sortOrder, setSortOrder] = useState('Newest');
+  
+  const handleCheckout = (book: any) => {
+    const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      router.push('/login');
+    } else {
+      const existing = JSON.parse(localStorage.getItem('checkedOutBooks') || '[]');
+      const newCheckout = {
+        ...book,
+        user: "Current User",
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        due: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        status: 'Borrowed'
+      };
+      localStorage.setItem('checkedOutBooks', JSON.stringify([...existing, newCheckout]));
+      alert(`Successfully checked out ${book.title}!`);
+    }
+  };
+
+  const filteredAndSortedBooks = [...allBooks]
+    .filter(book => category === 'All Categories' || book.category === category)
+    .sort((a, b) => {
+      if (sortOrder === 'A-Z') {
+        return a.title.localeCompare(b.title);
+      }
+      return 0; // Default or Newest (keeps original array order)
+    });
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F9FAF8]">
       <Navbar />
@@ -83,22 +116,28 @@ export default function BooksPage() {
           <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <h2 className="text-2xl font-serif text-black">All Books</h2>
             <div className="flex gap-4">
-              <select className="bg-white border border-gray-300 px-4 py-2 text-sm outline-none text-black">
-                <option>All Categories</option>
-                <option>Fiction</option>
-                <option>Non-Fiction</option>
-                <option>History</option>
-                <option>Fantasy</option>
+              <select 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="bg-white border border-gray-300 px-4 py-2 text-sm outline-none text-black">
+                <option value="All Categories">All Categories</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Non-Fiction">Non-Fiction</option>
+                <option value="History">History</option>
+                <option value="Fantasy">Fantasy</option>
               </select>
-              <select className="bg-white border border-gray-300 px-4 py-2 text-sm outline-none text-black">
-                <option>Sort by: Newest</option>
-                <option>Sort by: A-Z</option>
+              <select 
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="bg-white border border-gray-300 px-4 py-2 text-sm outline-none text-black">
+                <option value="Newest">Sort by: Newest</option>
+                <option value="A-Z">Sort by: A-Z</option>
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {allBooks.map((book, index) => (
+            {filteredAndSortedBooks.map((book, index) => (
               <div key={index} className="group flex flex-col h-full bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
                 <div className="relative mb-4 overflow-hidden">
                   <span className={`absolute top-3 right-3 text-xs font-medium px-2 py-1 z-10 ${book.status === 'Available' ? 'bg-[#6FB3A7] text-white' : 'bg-gray-200 text-gray-700'}`}>
@@ -128,6 +167,7 @@ export default function BooksPage() {
                   
                   <button 
                     disabled={book.status !== 'Available'}
+                    onClick={() => handleCheckout(book)}
                     className={`w-full py-2.5 text-sm font-semibold transition-colors duration-300 ${
                       book.status === 'Available' 
                       ? 'bg-black text-white hover:bg-[#6FB3A7]' 
